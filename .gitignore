@@ -1,0 +1,9 @@
+# Compiled binaries
+*.exe
+*.o
+*.obj
+
+# Temporary logs / workspace specific files
+err.txt
+.vs/
+.vscode/
