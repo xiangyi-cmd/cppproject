@@ -2,6 +2,16 @@
 #include <iostream>
 #include <limits>
 #include <string>
+#include <cstdlib>
+
+// 跨平台清屏功能
+void clearScreen() {
+#ifdef _WIN32
+    std::system("cls");
+#else
+    std::system("clear");
+#endif
+}
 
 // 防呆輸入整數的輔助函式
 int getValidIntInput(const std::string& prompt, int minVal, int maxVal) {
@@ -83,6 +93,7 @@ int main() {
     }
 
     while (true) {
+        clearScreen();
         std::cout << "\n\033[34m================== 主選單 ==================\033[0m\n";
         std::cout << "  1. 查看所有客房狀態 (List All Rooms)\n";
         std::cout << "  2. 條件篩選與搜尋 (Search & Filter)\n";
@@ -96,6 +107,7 @@ int main() {
 
         switch (choice) {
             case 1: {
+                clearScreen();
                 std::cout << "\n\033[36m[查看房間狀態]\033[0m\n";
                 std::cout << "1. 依房號排序 (預設)\n";
                 std::cout << "2. 依房價由低到高排序\n";
@@ -104,6 +116,7 @@ int main() {
                 break;
             }
             case 2: {
+                clearScreen();
                 std::cout << "\n\033[36m[條件篩選與搜尋]\033[0m\n";
                 std::cout << "1. 篩選單人房 (Single)\n";
                 std::cout << "2. 篩選雙人房 (Double)\n";
@@ -127,6 +140,7 @@ int main() {
                 break;
             }
             case 3: {
+                clearScreen();
                 std::cout << "\n\033[36m[辦理入住 / 預訂房間]\033[0m\n";
                 int roomNum = getValidIntInput("請輸入欲預訂的房號: ", 100, 999);
                 
@@ -153,6 +167,7 @@ int main() {
                 break;
             }
             case 4: {
+                clearScreen();
                 std::cout << "\n\033[36m[辦理退房結帳]\033[0m\n";
                 int roomNum = getValidIntInput("請輸入退房的房號: ", 100, 999);
                 
@@ -163,10 +178,12 @@ int main() {
                 break;
             }
             case 5: {
+                clearScreen();
                 manager.showStatistics();
                 break;
             }
             case 6: {
+                clearScreen();
                 std::cout << "\n正在儲存資料至 CSV 檔案...\n";
                 if (manager.saveRooms(roomsFile) && manager.saveBookings(bookingsFile)) {
                     std::cout << "\033[32m資料儲存成功！\033[0m\n";
