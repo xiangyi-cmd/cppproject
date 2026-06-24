@@ -237,10 +237,42 @@ int main() {
             case 4: {
                 clearScreen();
                 std::cout << "\n\033[36m================== [辦理退房結帳] ==================\033[0m\n";
-                int roomNum = getValidIntInput("請輸入退房的房號: ", 100, 999);
                 
+                std::vector<std::shared_ptr<Room>> bookedRooms;
+                for (const auto& r : manager.getAllRooms()) {
+                    if (r->getIsBooked()) {
+                        bookedRooms.push_back(r);
+                    }
+                }
+
+                if (bookedRooms.empty()) {
+                    std::cout << "\n\033[33m提示：目前沒有任何已入住/已預訂的客房！\033[0m\n";
+                    break;
+                }
+
+                std::vector<std::string> checkoutOptions;
+                for (const auto& r : bookedRooms) {
+                    std::string typeChinese = "";
+                    if (r->getRoomType() == "Single") typeChinese = "單人房";
+                    else if (r->getRoomType() == "Double") typeChinese = "雙人房";
+                    else if (r->getRoomType() == "Suite") typeChinese = "總統套房";
+
+                    std::string opt = "房號 " + std::to_string(r->getRoomNumber()) + 
+                                      " (" + typeChinese + ") - 住客: " + r->getGuestName();
+                    checkoutOptions.push_back(opt);
+                }
+                checkoutOptions.push_back("返回主選單");
+
+                int checkoutChoice = getMenuChoiceWithArrows("================== [辦理退房結帳 - 選擇退房客房] ==================", checkoutOptions);
+                
+                if (checkoutChoice == (int)checkoutOptions.size()) {
+                    break;
+                }
+
+                int selectedRoomNum = bookedRooms[checkoutChoice - 1]->getRoomNumber();
+                clearScreen();
                 double cost = 0.0;
-                if (manager.checkoutRoom(roomNum, cost)) {
+                if (manager.checkoutRoom(selectedRoomNum, cost)) {
                     std::cout << "\033[32m退房手續完成！房間已釋放為空房。\033[0m\n";
                 }
                 break;

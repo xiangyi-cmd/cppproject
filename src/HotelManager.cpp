@@ -325,3 +325,8 @@ void HotelManager::showStatistics() const {
     std::cout << "歷史訂單總筆數: " << bookings.size() << " 筆\n";
     std::cout << "\033[35m==================================================\033[0m\n";
 }
+
+// 獲取所有客房資料的存取器
+const std::vector<std::shared_ptr<Room>>& HotelManager::getAllRooms() const {
+    return rooms;
+}

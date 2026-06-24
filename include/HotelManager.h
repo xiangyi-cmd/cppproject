@@ -49,6 +49,7 @@ public:
 
     // 4. 輔助尋找房間指標
     std::shared_ptr<Room> findRoom(int roomNum) const;
+    const std::vector<std::shared_ptr<Room>>& getAllRooms() const;
 };
 
 #endif // HOTEL_MANAGER_H
