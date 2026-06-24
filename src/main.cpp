@@ -3,6 +3,68 @@
 #include <limits>
 #include <string>
 #include <cstdlib>
+#include <vector>
+
+#ifdef _WIN32
+#include <conio.h>
+#endif
+
+// 宣告清屏函式
+void clearScreen();
+
+// 使用方向鍵做選單選擇的輔助函式
+int getMenuChoiceWithArrows(const std::string& title, const std::vector<std::string>& options) {
+    int selected = 0;
+    int numOptions = options.size();
+
+#ifdef _WIN32
+    while (true) {
+        clearScreen();
+        std::cout << "\033[34m" << title << "\033[0m\n";
+        for (int i = 0; i < numOptions; ++i) {
+            if (i == selected) {
+                std::cout << " \033[36m=> " << options[i] << "\033[0m\n";
+            } else {
+                std::cout << "    " << options[i] << "\n";
+            }
+        }
+        std::cout << "\033[34m============================================\033[0m\n";
+        std::cout << "提示：使用 ↑ / ↓ 鍵移動，按 Enter 鍵確定選擇\n";
+
+        int ch = _getch();
+        if (ch == 224 || ch == 0) {
+            int subCh = _getch();
+            if (subCh == 72) { // 向上鍵
+                selected = (selected - 1 + numOptions) % numOptions;
+            } else if (subCh == 80) { // 向下鍵
+                selected = (selected + 1) % numOptions;
+            }
+        } else if (ch == 13 || ch == 10) {
+            return selected + 1;
+        } else if (ch >= '1' && ch <= '0' + numOptions) {
+            return ch - '0';
+        }
+    }
+#else
+    clearScreen();
+    std::cout << "\033[34m" << title << "\033[0m\n";
+    for (int i = 0; i < numOptions; ++i) {
+        std::cout << "  " << options[i] << "\n";
+    }
+    std::cout << "\033[34m============================================\033[0m\n";
+    int val = 0;
+    while (true) {
+        std::cout << "請輸入您的選擇 (1-" << numOptions << "): ";
+        if (std::cin >> val && val >= 1 && val <= numOptions) {
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            return val;
+        }
+        std::cout << "\033[31m錯誤：請輸入正確的選項！\033[0m\n";
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+#endif
+}
 
 // 跨平台清屏功能
 void clearScreen() {
@@ -92,56 +154,62 @@ int main() {
         std::cout << "歷史預訂紀錄載入成功！\n";
     }
 
-    while (true) {
-        clearScreen();
-        std::cout << "\n\033[34m================== 主選單 ==================\033[0m\n";
-        std::cout << "  1. 查看所有客房狀態 (List All Rooms)\n";
-        std::cout << "  2. 條件篩選與搜尋 (Search & Filter)\n";
-        std::cout << "  3. 辦理入住 / 預訂房間 (Book a Room)\n";
-        std::cout << "  4. 辦理退房結帳 (Check-Out & Invoice)\n";
-        std::cout << "  5. 查看飯店營運統計 (View Statistics)\n";
-        std::cout << "  6. 儲存並退出系統 (Save & Exit)\n";
-        std::cout << "\033[34m============================================\033[0m\n";
+    std::vector<std::string> mainMenuOptions = {
+        "1. 查看所有客房狀態 (List All Rooms)",
+        "2. 條件篩選與搜尋 (Search & Filter)",
+        "3. 辦理入住 / 預訂房間 (Book a Room)",
+        "4. 辦理退房結帳 (Check-Out & Invoice)",
+        "5. 查看飯店營運統計 (View Statistics)",
+        "6. 儲存並退出系統 (Save & Exit)"
+    };
 
-        int choice = getValidIntInput("請輸入您的選擇 (1-6): ", 1, 6);
+    while (true) {
+        int choice = getMenuChoiceWithArrows("================== 主選單 ==================", mainMenuOptions);
 
         switch (choice) {
             case 1: {
+                std::vector<std::string> sortOptions = {
+                    "1. 依房號排序 (預設)",
+                    "2. 依房價由低到高排序"
+                };
+                int sortChoice = getMenuChoiceWithArrows("================== [查看房間狀態 - 排序方式] ==================", sortOptions);
                 clearScreen();
                 std::cout << "\n\033[36m[查看房間狀態]\033[0m\n";
-                std::cout << "1. 依房號排序 (預設)\n";
-                std::cout << "2. 依房價由低到高排序\n";
-                int sortChoice = getValidIntInput("請選擇排序方式: ", 1, 2);
                 manager.displayAllRooms(sortChoice == 2);
                 break;
             }
             case 2: {
-                clearScreen();
-                std::cout << "\n\033[36m[條件篩選與搜尋]\033[0m\n";
-                std::cout << "1. 篩選單人房 (Single)\n";
-                std::cout << "2. 篩選雙人房 (Double)\n";
-                std::cout << "3. 篩選總統套房 (Suite)\n";
-                std::cout << "4. 不限房型\n";
-                int typeChoice = getValidIntInput("請選擇房型: ", 1, 4);
+                std::vector<std::string> typeOptions = {
+                    "1. 篩選單人房 (Single)",
+                    "2. 篩選雙人房 (Double)",
+                    "3. 篩選總統套房 (Suite)",
+                    "4. 不限房型"
+                };
+                int typeChoice = getMenuChoiceWithArrows("================== [條件篩選與搜尋 - 選擇房型] ==================", typeOptions);
                 
                 std::string typeFilter = "";
                 if (typeChoice == 1) typeFilter = "Single";
                 else if (typeChoice == 2) typeFilter = "Double";
                 else if (typeChoice == 3) typeFilter = "Suite";
 
+                clearScreen();
+                std::cout << "\n\033[36m================== [條件篩選與搜尋 - 輸入預算] ==================\033[0m\n";
                 double maxPrice = getValidDoubleInput("請輸入預算上限 (輸入 0 表示不設上限): ", 0);
                 
-                std::cout << "是否僅顯示空閒房間？\n";
-                std::cout << "1. 是 (僅空房)\n";
-                std::cout << "2. 否 (顯示全部)\n";
-                int availChoice = getValidIntInput("請選擇: ", 1, 2);
+                std::vector<std::string> availOptions = {
+                    "1. 是 (僅空房)",
+                    "2. 否 (顯示全部)"
+                };
+                int availChoice = getMenuChoiceWithArrows("================== [條件篩選與搜尋 - 顯示狀態] ==================", availOptions);
 
+                clearScreen();
+                std::cout << "\n\033[36m[條件篩選與搜尋結果]\033[0m\n";
                 manager.searchRooms(typeFilter, maxPrice, availChoice == 1);
                 break;
             }
             case 3: {
                 clearScreen();
-                std::cout << "\n\033[36m[辦理入住 / 預訂房間]\033[0m\n";
+                std::cout << "\n\033[36m================== [辦理入住 / 預訂房間] ==================\033[0m\n";
                 int roomNum = getValidIntInput("請輸入欲預訂的房號: ", 100, 999);
                 
                 // 先檢查房間是否存在且空閒
@@ -168,7 +236,7 @@ int main() {
             }
             case 4: {
                 clearScreen();
-                std::cout << "\n\033[36m[辦理退房結帳]\033[0m\n";
+                std::cout << "\n\033[36m================== [辦理退房結帳] ==================\033[0m\n";
                 int roomNum = getValidIntInput("請輸入退房的房號: ", 100, 999);
                 
                 double cost = 0.0;
