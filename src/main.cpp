@@ -210,20 +210,43 @@ int main() {
             case 3: {
                 clearScreen();
                 std::cout << "\n\033[36m================== [辦理入住 / 預訂房間] ==================\033[0m\n";
-                int roomNum = getValidIntInput("請輸入欲預訂的房號: ", 100, 999);
                 
-                // 先檢查房間是否存在且空閒
-                auto roomObj = manager.findRoom(roomNum);
-                if (!roomObj) {
-                    std::cout << "\033[31m錯誤：不存在此房號！\033[0m\n";
-                    break;
+                std::vector<std::shared_ptr<Room>> vacantRooms;
+                for (const auto& r : manager.getAllRooms()) {
+                    if (!r->getIsBooked()) {
+                        vacantRooms.push_back(r);
+                    }
                 }
-                if (roomObj->getIsBooked()) {
-                    std::cout << "\033[31m錯誤：此房間已經被預訂！請查看房態牆選擇其他房間。\033[0m\n";
+
+                if (vacantRooms.empty()) {
+                    std::cout << "\n\033[33m提示：目前所有客房皆已滿房！無法辦理入住。\033[0m\n";
                     break;
                 }
 
-                // 顯示該房型明細
+                std::vector<std::string> checkinOptions;
+                for (const auto& r : vacantRooms) {
+                    std::string typeChinese = "";
+                    if (r->getRoomType() == "Single") typeChinese = "單人房";
+                    else if (r->getRoomType() == "Double") typeChinese = "雙人房";
+                    else if (r->getRoomType() == "Suite") typeChinese = "總統套房";
+
+                    std::string opt = "房號 " + std::to_string(r->getRoomNumber()) + 
+                                      " (" + typeChinese + ") - $" + std::to_string((int)r->getBasePrice()) + " / 晚";
+                    checkinOptions.push_back(opt);
+                }
+                checkinOptions.push_back("返回主選單");
+
+                int checkinChoice = getMenuChoiceWithArrows("================== [辦理入住 - 選擇預訂客房] ==================", checkinOptions);
+                
+                if (checkinChoice == (int)checkinOptions.size()) {
+                    break;
+                }
+
+                auto roomObj = vacantRooms[checkinChoice - 1];
+                int roomNum = roomObj->getRoomNumber();
+                
+                clearScreen();
+                std::cout << "\n\033[36m================== [辦理入住 / 預訂房間] ==================\033[0m\n";
                 std::cout << "\n\033[33m--- 客房詳細資訊 ---\033[0m\n";
                 roomObj->displayRoomDetails();
                 std::cout << "---------------------\n";
